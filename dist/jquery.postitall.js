@@ -211,8 +211,9 @@ var delay = (function(){
         minimized       : true,         //true = minimized, false = maximixed
         expand          : true,         //Expand note
         fixed           : true,         //Allow to fix the note in page
-        addNew          : true,         //Create a new postit
         showInfo        : true,         //Show info icon
+        addNew          : true,         //Create a new postit
+        shareNote       : true,         //Share note on social networks
         pasteHtml       : true,         //Allow paste html in contenteditor
         htmlEditor      : true,         //Html editor (trumbowyg)
         autoPosition    : true,         //Automatic reposition of the notes when user resize screen
@@ -1527,7 +1528,7 @@ var delay = (function(){
             $('#pia_expand_' + index).removeClass('PIAexpand').addClass('PIAmaximize');
             t.hoverOptions(index, false);
             t.saveOldPosition();
-            t.toogleToolbar('hide', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_minimize_', 'pia_new_', 'pia_hidden_']);
+            t.toogleToolbar('hide', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_minimize_', 'pia_new_', 'pia_hidden_', 'pia_share_']);
             t.hideArrow();
             t.switchTrasparentNoteOn();
             t.switchOffLights();
@@ -1561,7 +1562,7 @@ var delay = (function(){
             $('#pia_expand_' + index).removeClass('PIAmaximize').addClass('PIAexpand');
             $($.fn.postitall.globals.prefix + index).css('position', options.position);
             // show toolbar
-            t.toogleToolbar('show', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_minimize_', 'pia_new_', 'pia_hidden_']);
+            t.toogleToolbar('show', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_minimize_', 'pia_new_', 'pia_hidden_', 'pia_share_']);
             //restore oldposition
             t.restoreOldPosition();
             //newstate
@@ -1592,7 +1593,7 @@ var delay = (function(){
                 var smallText = $('<div id="pia_minimized_text_'+index+'" class="PIAminimizedText" />').text(txtContent);
                 $('#pia_toolbar_'+index).append(smallText);
                 //hide toolbar
-                t.toogleToolbar('hide', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_expand_', 'pia_new_', 'pia_hidden_']);
+                t.toogleToolbar('hide', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_expand_', 'pia_new_', 'pia_hidden_', 'pia_share_']);
 
                 //Enable draggable x axis
                 if ($.fn.postitall.globals.draggable && options.features.draggable) {
@@ -1621,7 +1622,7 @@ var delay = (function(){
                 $('#pia_minimize_'+index).removeClass('PIAmaximize').addClass('PIAminimize');
                 options.flags.minimized = false;
                 // show toolbar
-                t.toogleToolbar('show', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_expand_', 'pia_new_', 'pia_hidden_']);
+                t.toogleToolbar('show', ['idPIAIconBottom_', 'idInfo_', 'pia_config_', 'pia_fixed_', 'pia_delete_', 'pia_blocked_', 'pia_expand_', 'pia_new_', 'pia_hidden_', 'pia_share_']);
                 $('#pia_minimized_text_'+index).remove();
                 //Remove draggable axis
                 if ($.fn.postitall.globals.draggable && options.features.draggable) {
@@ -2084,11 +2085,14 @@ var delay = (function(){
             }
 
             //Info icon
-            if(($.fn.postitall.globals.showInfo && options.features.showInfo) || ($.fn.postitall.globals.addNew && options.features.addNew)) {
+            if(($.fn.postitall.globals.showInfo && options.features.showInfo) 
+                || ($.fn.postitall.globals.addNew && options.features.addNew)
+                || ($.fn.postitall.globals.shareNote && options.features.shareNote)) {
                 var bottomToolbar = $('<div />', {
                     'id': 'idPIAIconBottom_'+ index,
                     'class': 'PIAIconBottom'
                 });
+                //Show info
                 if($.fn.postitall.globals.showInfo && options.features.showInfo) {
                     var info = $('<a />', {
                         'href': '#',
@@ -2110,7 +2114,7 @@ var delay = (function(){
                     });
                     bottomToolbar.append(info);
                 }
-                //New note
+                //Copy/New note
                 if($.fn.postitall.globals.addNew && options.features.addNew) {
                     //if (options.features.addNew) {
                         var newNote = $('<a />', {
@@ -2149,6 +2153,28 @@ var delay = (function(){
                         bottomToolbar.append(newNote);
                     //}
                 }
+                //Share note
+                if($.fn.postitall.globals.shareNote && options.features.shareNote) {
+                    var shareNote = $('<a />', {
+                        'href': '#',
+                        'id': 'pia_share_' + index,
+                        'class': 'PIAshare PIAicon'
+                    }).click(function (e) {
+                        if (obj.hasClass('PIAdragged')) {
+                            obj.removeClass('PIAdragged');
+                        } else {
+                            $('.backContent_'+index).hide();
+                            $('#idShareNote_'+index+' > .PIABox').css({
+                                'height': options.height - 40
+                            });
+                            $('#idShareNote_'+index).show();
+                            t.switchBackNoteOn('PIAflip2');
+                        }
+                        e.preventDefault();
+                    });
+                    bottomToolbar.append(shareNote);
+                }
+
                 toolbar.prepend(bottomToolbar);
             }
 
@@ -2260,7 +2286,7 @@ var delay = (function(){
                 });
             }
 
-            //Back 1: config
+            //Back 1: note configuration
             content = "";
             if($.fn.postitall.globals.changeoptions) {
                 content = $('<div />', {
@@ -2268,9 +2294,6 @@ var delay = (function(){
                     'class': 'PIAcontent backContent_'+index,
                 }).append($('<div />', {
                     'class': 'PIABox PIAconfigBox',
-                    //'style': 'margin-left: -5px;',
-                    //'width': options.width - 10,
-                    //'width': 'auto',
                     'height': options.height - 40
                 }).append("<div class='PIAtitle'>Note config</div>")
                     .append(bgLabel).append(bgString) // Bg color
@@ -2281,7 +2304,7 @@ var delay = (function(){
                 );
             }
 
-            //Back 2: info
+            //Back 2: note information
             var backInfo = "";
             if($.fn.postitall.globals.showInfo && options.features.showInfo) {
                 var d = new Date(options.created);
@@ -2299,15 +2322,34 @@ var delay = (function(){
                 }).append(
                     $('<div />', {
                         'class': 'PIAinfoBox PIABox',
-                        //'style': 'margin-left: -5px;',
-                        //'width': options.width - 10,
-                        //'width': 'auto'
                         'height': options.height - 40
                     }).append(textInfo)
                 );
             }
 
-            //Back 3: delete
+            //Back 4: share note
+            var shareInfo = "";
+            if($.fn.postitall.globals.shareNote && options.features.shareNote) {
+                //var textInfo = "<div class='PIAtitle'>Share note</div>";
+                var textInfo = "";
+                textInfo += '<div class="PIAshare_op">';
+                textInfo += '<a href="https://twitter.com/intent/tweet?text=Hello%20world" target="_blank"><div class="PIAshare_tw"></div></a>';
+                textInfo += '<a href="#"><div class="PIAshare_gg"></div></a>';
+                textInfo += '<a href="#"><div class="PIAshare_fb"></div></a>';
+                textInfo += '</div>';
+
+                shareInfo = $('<div />', {
+                    'id': 'idShareNote_'+index,
+                    'class': 'PIAcontent backContent_'+index
+                }).append(
+                    $('<div />', {
+                        'class': 'PIAconfigBox PIABox',
+                        'height': options.height - 40
+                    }).append(textInfo)
+                );
+            }
+
+            //Back 3: delete options
             var deleteInfo = "";
             if($.fn.postitall.globals.askOnDelete && options.features.askOnDelete) {
                 deleteInfo = $('<div />', {
@@ -2316,9 +2358,6 @@ var delay = (function(){
                 }).append($('<div />', {
                         'id': 'pia_confirmdel_' + index,
                         'class': 'PIABox PIAwarningBox',
-                        //'style': 'margin-left: -5px;',
-                        //'width': options.width - 10,
-                        //'width': 'auto',
                         'height': options.height - 40
                     }).append("<div class='PIAtitle'>Delete note!</div>")
                         .append($('<span />', {
@@ -2360,6 +2399,7 @@ var delay = (function(){
             .append(toolbar)
             .append(content)
             .append(backInfo)
+            .append(shareInfo)
             .append(deleteInfo);
 
             //Create postit
