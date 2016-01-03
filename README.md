@@ -3,7 +3,7 @@ Customizable sticky notes for the web.
 
 ## jQuery Plugin
 
-jQuery plugin for adding sticky notes in your webpage.
+The jQuery plugin for adding sticky notes in your webpage.
 
 http://postitall.txusko.com/plugin.html
 
@@ -19,9 +19,11 @@ bower install postitall
 
 ## Chrome extension
 
-Extension for add sticky notes to the pages you visit.
+Add sticky notes to your favorite web pages
 
-http://postitall.txusko.com/extension.html
+**More info:** http://postitall.txusko.com/extension.html
+
+**Github repository:** https://github.com/txusko/PostItAll-ChromeExtension
 
 ## External libraries & plugins
 
@@ -50,3 +52,5 @@ _Copyright Javi Filella (http://www.txusko.com/)_
 _Dual-licensed under the MIT and GPL Version 2 licenses_
 
 http://postitall.txusko.com/
+
+postitall@txusko.com
