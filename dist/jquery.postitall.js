@@ -41,7 +41,7 @@ var delay = (function(){
     "use strict";
 
     // Debug
-    var debugging = false; // or true
+    var debugging = true; // or true
     if (typeof console === "undefined") {
         console = {
             log: function () { return undefined; }
@@ -217,7 +217,9 @@ var delay = (function(){
         pasteHtml       : true,         //Allow paste html in contenteditor
         htmlEditor      : true,         //Html editor (trumbowyg)
         autoPosition    : true,         //Automatic reposition of the notes when user resize screen
-        addArrow        : 'back'        //Add arrow to notes : none, front, back, all
+        addArrow        : 'back',       //Add arrow to notes : none, front, back, all
+        hideUntil       : 300000,       //When note is hidden, hide for n milliseconds
+        errorMessage    : ''            //Last known error message if necessary
     };
 
     //Copy of the original global configuration
@@ -275,7 +277,8 @@ var delay = (function(){
         onSelect: function (id) { return undefined; },                  //Triggered when note is clicked, dragged or resized
         onDblClick: function (id) { return undefined; },                //Triggered on double click
         onRelease: function (id) { return undefined; },                 //Triggered on the end of dragging and resizing of a note
-        onDelete: function (id) { return undefined; }                   //Triggered when a note is deleted
+        onDelete: function (id) { return undefined; },                  //Triggered when a note is deleted
+        onError: function (errorMessage) { return undefined; }          //Triggered on error
     };
 
     //Copy of the original note configuration
@@ -467,20 +470,30 @@ var delay = (function(){
             var options = opt;
             //console.log(options.style.backgroundcolor);
             if(options.id !== "") {
+                console.log('paso1');
                 //Random bg & textcolor
                 options = randCol(options);
                 //Initialize
                 setTimeout(function() { note.init(obj, options); if(callback !== undefined) callback($.fn.postitall.globals.prefix + options.id, options, obj[0]); }, 100);
             } else {
                 //Get new id
-                //console.log('paso');
-                note.getIndex(($.fn.postitall.globals.savable || options.features.savable), function(index) {
+                //note.getIndex(($.fn.postitall.globals.savable || options.features.savable), function(index) {
+                note.getIndex(options.features.savable, function(index) {
                     //Id
                     options.id = index;
                     //Random bg & textcolor
                     options = randCol(options);
                     //Initialize
-                    setTimeout(function() { note.init(obj, options); if(callback !== undefined) callback($.fn.postitall.globals.prefix + options.id, options, obj[0]); }, 100);
+                    setTimeout(function() {
+                        note.init(obj, options);
+                        //Save in storage
+                        console.log('paso2', options);
+                        if(options.features.savable) {
+                            note.saveOptions(options);
+                        }
+                        if(callback !== undefined) callback($.fn.postitall.globals.prefix + options.id, options, obj[0]);
+                    }, 100);
+
                 });
             }
         },
@@ -570,6 +583,9 @@ var delay = (function(){
                                         if(callbacks.onDelete !== undefined) {
                                             o.onDelete = callbacks.onDelete;
                                         }
+                                        if(callbacks.onError !== undefined) {
+                                            o.onError = callbacks.onError;
+                                        }
                                     }
                                     if(o.flags !== undefined) {
                                         o.flags.highlight = false;
@@ -601,7 +617,8 @@ var delay = (function(){
             $('.PIApostit').each(function(i,e) {
                 id = $(e).data('PIA-id');
                 options = $(e).data('PIA-options');
-                if(id !== undefined && options !== undefined && ($.fn.postitall.globals.savable || options.features.savable)) {
+                //if(id !== undefined && options !== undefined && ($.fn.postitall.globals.savable || options.features.savable)) {
+                if(id !== undefined && options !== undefined && options.features.savable) {
                     $(this).postitall('save');
                 }
             });
@@ -863,7 +880,8 @@ var delay = (function(){
         //Save object
         save : function(obj, callback) {
             var options = obj.data('PIA-options');
-            if(!$.fn.postitall.globals.savable && !options.features.savable)
+            //if(!$.fn.postitall.globals.savable && !options.features.savable)
+            if(!options.features.savable)
                 return;
             //console.log('save', options);
             options.features.savable = true;
@@ -872,15 +890,19 @@ var delay = (function(){
 
         //Save options
         saveOptions : function(options, callback) {
+            var t = this;
             if(options === undefined)
                 options = this.options;
-            console.log('saveOptions', options.posX, options.posY, options.width, options.height);
-            if ($.fn.postitall.globals.savable || options.features.savable) {
+            //console.log('saveOptions', options.posX, options.posY, options.width, options.height);
+            //if ($.fn.postitall.globals.savable || options.features.savable) {
+            if (options.features.savable) {
                 //console.log(options);
                 storageManager.add(options, function(error) {
                     if(error != "") {
+                        options.features.errorMessage = error;
+                        options.onError(options.features.errorMessage);
                         if(callback != null) callback(error);
-                        else alert('Error saving options: ' + error);
+                        else console.log('Error saving options: ' + error);
                     } else {
                         if(callback != null) callback();
                     }
@@ -908,7 +930,8 @@ var delay = (function(){
 
             //console.log('destroy', id, $.fn.postitall.globals.savable, options.features.savable);
             //Remove from localstorage
-            if ($.fn.postitall.globals.savable || options.features.savable) {
+            //if ($.fn.postitall.globals.savable || options.features.savable) {
+            if (options.features.savable) {
                 if(options.features.savable) {
                     storageManager.remove(id);
                     options.onChange($.fn.postitall.globals.prefix + id);
@@ -1078,30 +1101,8 @@ var delay = (function(){
                 callback(this.guid());
                 return;
             }
-
-            var len = 0;
-            var content = "";
-            var paso = false;
-            storageManager.getlength(function(len) {
-                //console.log('getIndex.len', len);
-                var loadedItems = $('.PIApostit').length;
-                var items = len + loadedItems + 1;
-                //console.log('getIndex.items', items);
-                for(var i = 1; i <= items; i++) {
-                    (function(i) {
-                        storageManager.get(i, function(content) {
-                            //console.log('getIndex.get', paso, i, content);
-                            if(!paso && content == "" && $( "#idPostIt_" + i ).length <= 0) {
-                                //console.log('nou index', i);
-                                paso = true;
-                            }
-                            if(callback != null && (paso || i >= items)) {
-                                callback(i);
-                                callback = null;
-                            }
-                        });
-                    })(i);
-                }
+            storageManager.getindex(function(newIndex) {
+                callback(newIndex);
             });
         },
 
@@ -1116,7 +1117,7 @@ var delay = (function(){
             }
             t.options = $.extend(t.options, opt);
             /*jslint unparam: true*/
-            $.each(['onChange', 'onSelect', 'onRelease', 'onDblClick'], function (i, e) {
+            $.each(['onChange', 'onSelect', 'onRelease', 'onDblClick', 'onDelete', 'onError'], function (i, e) {
                 if (typeof t.options[e] !== 'function') {
                     t.options[e] = function () { return undefined; };
                 }
@@ -2069,11 +2070,18 @@ var delay = (function(){
                 t.autoresize();
                 t.save(obj, function(error) {
                     if(error !== undefined && error !== "") {
-                        alert('Error saving content! \n\n'+error+'\n\nReverting to last known content.');
-                        t.options.content = oldContent;
-                        $('#pia_editable_' + t.options.id).html(oldContent);
-                        $('#pia_editable_' + t.options.id).trigger('change');
-                        t.autoresize();
+                        delay(function() {
+                            t.options.features.errorMessage = error;
+                            t.options.onError(error);
+                            console.log('Error saving content! \n\n'+error+'\n\n', t.options.onError);
+                            if(t.options.content !== oldContent) {
+                                console.log('Reverting to last known content.');
+                                t.options.content = oldContent;
+                                $('#pia_editable_' + t.options.id).html(oldContent);
+                                $('#pia_editable_' + t.options.id).trigger('change');
+                            }
+                            t.autoresize();
+                        }, 100);
                     }
                 });
             }).html(t.options.content);
@@ -2085,7 +2093,7 @@ var delay = (function(){
             }
 
             //Info icon
-            if(($.fn.postitall.globals.showInfo && options.features.showInfo) 
+            if(($.fn.postitall.globals.showInfo && options.features.showInfo)
                 || ($.fn.postitall.globals.addNew && options.features.addNew)
                 || ($.fn.postitall.globals.shareNote && options.features.shareNote)) {
                 var bottomToolbar = $('<div />', {
@@ -2334,7 +2342,7 @@ var delay = (function(){
                 var textInfo = "";
                 textInfo += '<div class="PIAshare_op">';
                 textInfo += '<a href="https://twitter.com/intent/tweet?text=Hello%20world" target="_blank"><div class="PIAshare_tw"></div></a>';
-                textInfo += '<a href="#"><div class="PIAshare_gg"></div></a>';
+                //textInfo += '<a href="#"><div class="PIAshare_gg"></div></a>';
                 textInfo += '<a href="#"><div class="PIAshare_fb"></div></a>';
                 textInfo += '</div>';
 
@@ -2865,7 +2873,9 @@ var delay = (function(){
             var t = this;
             setTimeout(function() {
                 //Save in storage
-                t.saveOptions(options);
+                //if(t.options.features.savable) {
+                //    t.saveOptions(options);
+                //}
                 //OnCreated event (id, options, obj)
                 options.onCreated($.fn.postitall.globals.prefix + index, options, obj);
                 //Highlight note
@@ -3017,6 +3027,11 @@ var delay = (function(){
                 });
             });
         },
+        getindex: function(callback) {
+            this.loadManager(function() {
+                $storage.getindex(callback);
+            });
+        },
         key: function (i, callback) {
             this.loadManager(function() {
                 $storage.key(i, function(name) {
@@ -3065,6 +3080,32 @@ var delay = (function(){
                 varvalue = "";
             //console.log('Loaded', varname, varvalue);
             if(callback != null) callback(varvalue);
+        },
+        getindex: function(callback) {
+            var t = this;
+            t.getlength(function(len) {
+                //console.log('getIndex.len', len);
+                var loadedItems = $('.PIApostit').length;
+                var items = parseInt(len) + parseInt(loadedItems) + 1;
+                //console.log('getIndex.items', items);
+                for(var i = 1; i <= items; i++) {
+                    if(callback != null) {
+                        (function(i) {
+                            t.get(i, function(content) {
+                                //console.log('getIndex.get', paso, i, content);
+                                if(!paso && content == "" && $( "#idPostIt_" + i ).length <= 0) {
+                                    //console.log('nou index', i);
+                                    paso = true;
+                                }
+                                if(callback != null && (paso || i >= items)) {
+                                    callback(i);
+                                    callback = null;
+                                }
+                            });
+                        })(i);
+                    }
+                }
+            });
         },
         remove: function (id, callback) {
             $localStorage.removeItem('PostIt_' + id);

@@ -10,7 +10,7 @@
     <meta name="author" content="Javi Filella">
     <link rel="icon" href="favicon.ico">
 
-    <title>Post It All - Another sticky note chrome extension for the web</title>
+    <title>Post It All - The chrome extension for adding sticky notes to your favorite web pages</title>
 
     <!-- Font awesome -->
     <link rel="stylesheet" href="libs/font-awesome/css/font-awesome.min.css">
@@ -34,6 +34,8 @@
     <link rel="stylesheet" href="libs/minicolors/jquery.minicolors.css">
     <link rel="stylesheet" href="dist/jquery.postitall.css">
     <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>
+
+    <link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/ifbdckgghfmehefajfoichlhcdiibkoc">
 
 </head>
 
@@ -74,9 +76,12 @@
                     <div class="intro-message">
                         <h1><i class="fa fa-sticky-note fa-fw"></i>Post It All!</h1>
                         <hr class="intro-divider">
-                        <h4>The chrome extension for add sticky notes to the pages you visit</h4>
+                        <h4>The chrome extension for adding sticky notes to your favorite web pages</h4>
 
-                        <br><a href="https://chrome.google.com/webstore/detail/ifbdckgghfmehefajfoichlhcdiibkoc" class="btn btn-success" role="button"><i class="fa fa-chrome fa-fw"></i> Get the extension</a><br><br>
+                        <button id="install-button" onclick="javascript:chrome.webstore.install()" class="btn btn-success"><i class="fa fa-chrome fa-fw"></i> Add to Chrome</button>
+                        <br><br>
+
+                        <!--br><a href="https://chrome.google.com/webstore/detail/ifbdckgghfmehefajfoichlhcdiibkoc" class="btn btn-success" role="button"><i class="fa fa-chrome fa-fw"></i> Get the extension</a><br><br-->
 
                         <!--hr class="intro-divider"-->
                         <p>
@@ -334,6 +339,19 @@
 
     <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
     <script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
+
+    <script>
+    /*if (chrome.app.isInstalled) {
+      document.getElementById('install-button').style.display = 'none';
+    }
+    $(document).ready(function() {
+        $('#install-button').click(function(){
+            chrome.webstore.install("https://chrome.google.com/webstore/detail/ifbdckgghfmehefajfoichlhcdiibkoc", function() {
+                alert('hi');
+            });
+        });
+    });*/
+    </script>
 
 </body>
 
