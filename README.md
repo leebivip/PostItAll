@@ -14,7 +14,7 @@ npm install postitall
 
 ### Install with bower
 ```shell
-bower install postitall
+bower install PostItAll
 ```
 
 ## Chrome extension

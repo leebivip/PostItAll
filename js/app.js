@@ -1,12 +1,4 @@
 $(document).ready(function() {
-    $('#idAddNote').click(function(e) {
-        if($(this).hasClass('disabled')) return;
-        $.PostItAll.new({
-            posX: e.pageX,
-            posY: e.pageY + 20
-        });
-        e.preventDefault();
-    });
     $('#idHideAll2').click(function(e) {
         if($(this).hasClass('disabled')) return;
         $.PostItAll.hide();

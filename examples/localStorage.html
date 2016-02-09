@@ -113,18 +113,29 @@
     <script src="../js/app.js"></script>
 
     <script>
-    //Set savable global
-    $.fn.postitall.globals.savable = true;
-    //Disables some features
-    $.fn.postitall.globals.askOnDelete = false;
-    $.fn.postitall.globals.fixed = false;
-    //Modify note style
-    $.fn.postitall.defaults.style.fontfamily = "'Shadows Into Light', sans-serif";
-    $.fn.postitall.defaults.style.fontsize = "larger";
-
     $(document).ready(function() {
+        //Set savable global
+        $.fn.postitall.globals.savable = true;
+        //Disables some features
+        $.fn.postitall.globals.askOnDelete = false;
+        $.fn.postitall.globals.fixed = false;
+        //Modify note style
+        $.fn.postitall.defaults.style.fontfamily = "'Shadows Into Light', sans-serif";
+        $.fn.postitall.defaults.style.fontsize = "larger";
         //Load previous saved notes
         $.PostItAll.load();
+        //New notes
+        $('#idAddNote').click(function(e) {
+            if($(this).hasClass('disabled')) return;
+            $.PostItAll.new({
+                posX: e.pageX,
+                posY: e.pageY + 20,
+                features: {
+                    savable: true
+                }
+            });
+            e.preventDefault();
+        });
     });
     </script>
 
